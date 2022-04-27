@@ -1,9 +1,9 @@
-// pages/index.js
 import { Radio, RadioGroupField } from "@aws-amplify/ui-react";
-import "@aws-amplify/ui-react/styles.css";
 import { Auth } from "aws-amplify";
+import { CognitoHostedUIIdentityProvider } from "@aws-amplify/auth";
 import { Hub, Logger } from "aws-amplify";
 import { useState, useEffect } from "react";
+import "@aws-amplify/ui-react/styles.css";
 
 export default function Home() {
   useEffect(() => {
@@ -19,6 +19,8 @@ export default function Home() {
           break;
         case "signOut":
           console.log("user signed out");
+          setAuthState("not signed in");
+          setAuthMethod("sign in");
           break;
         case "signIn_failure":
           console.error("user sign in failed");
@@ -45,14 +47,15 @@ export default function Home() {
   const getCurrentUser = async () => {
     try {
       const user = await Auth.currentAuthenticatedUser();
-      console.log({ user });
       if (user) {
         setAuthMethod("sign out");
         setAuthState("signed in!");
+        setUser(user);
       }
       return user;
     } catch (err) {
       setAuthState("not signed in");
+      setUser(null);
       console.error("getCurrentUser error: ", err);
     }
   };
@@ -128,6 +131,43 @@ export default function Home() {
   const handleSignOut = async () => {
     await Auth.signOut();
     setAuthState("not signed in");
+    getCurrentUser();
+  };
+
+  const handleDeleteUser = async () => {
+    try {
+      const result = await Auth.deleteUser();
+      console.log({ result });
+    } catch (error) {
+      console.error("Error deleting user", error);
+    }
+  };
+
+  const handleFetchDevices = async () => {
+    try {
+      const result = await Auth.fetchDevices();
+      console.log("fetchDevices result: ", result);
+    } catch (err) {
+      console.error("Error fetching devices", err);
+    }
+  };
+
+  const handleRememberDevice = async () => {
+    try {
+      const result = await Auth.rememberDevice();
+      console.log("remember device result: ", result);
+    } catch (error) {
+      console.error("Error remembering device", error);
+    }
+  };
+
+  const handleForgetDevice = async () => {
+    try {
+      const result = await Auth.forgetDevice();
+      console.log("forget device result: ", result);
+    } catch (error) {
+      console.error("Error forgeting device", error);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -157,50 +197,76 @@ export default function Home() {
     <main>
       <h1>Next.js App</h1>
       <h3>{authState}</h3>
-      <RadioGroupField
-        label="Auth Method:"
-        name="shugo-sign-in-options"
-        defaultValue={methods[0]}
-        direction="row"
-      >
-        {methods.map((option) => (
-          <Radio
-            selected={authMethod === option}
-            key={option}
-            value={option}
-            onChange={handleRadioSelection}
-          >
-            {option}
-          </Radio>
-        ))}
-      </RadioGroupField>
+      <h4>user: {user ? user.username : "none"}</h4>
 
-      <form onSubmit={handleSubmit}>
-        {(authState === "not signed in" ||
-          authState === "sign in" ||
-          authState === "sign up") && (
-          <>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              placeholder="Username"
-            />
-            <input
-              type="password"
-              id="password"
-              name="password"
-              placeholder="Password"
-            />
-          </>
-        )}
-        {authState === "awaiting verification" && (
-          <>
+      {authState !== "signed in!" && (
+        <RadioGroupField
+          label="Auth Method:"
+          name="shugo-sign-in-options"
+          defaultValue={methods[0]}
+          direction="row"
+        >
+          {methods.map((option) => (
+            <Radio
+              selected={authMethod === option}
+              key={option}
+              value={option}
+              onChange={handleRadioSelection}
+            >
+              {option}
+            </Radio>
+          ))}
+        </RadioGroupField>
+      )}
+
+      {/* not signed in */}
+      {(authState !== "signed in!" || !user) && (
+        <form onSubmit={handleSubmit}>
+          {(authState === "not signed in" ||
+            authState === "sign in" ||
+            authState === "sign up") && (
+            <>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="Username"
+              />
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Password"
+              />
+            </>
+          )}
+          {/* confirm user code input */}
+          {authState === "awaiting verification" && (
             <input type="text" id="code" name="code" placeholder="code" />
-          </>
-        )}
-        <input type="submit" value={authMethod} />
-      </form>
+          )}
+          <input type="submit" value={authMethod} />
+          <button
+            onClick={() =>
+              Auth.federatedSignIn({
+                provider: CognitoHostedUIIdentityProvider.Google,
+              })
+            }
+          >
+            Open Google
+          </button>
+        </form>
+      )}
+      {/* signed in */}
+      {authState === "signed in!" && user && (
+        <>
+          <h2>welcome, {user.username}</h2>
+          <button onClick={handleDeleteUser}>Delete Yo Self</button>
+          <button onClick={handleSignOut}>Sign Out</button>
+          <button onClick={handleFetchDevices}>Fetch Devices</button>
+          <button onClick={handleRememberDevice}>Remember This Device</button>
+          <button onClick={handleForgetDevice}>Forget This Device</button>
+        </>
+      )}
     </main>
   );
 }

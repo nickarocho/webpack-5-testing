@@ -10,6 +10,8 @@ export type AmplifyDependentResourcesAttributes = {
         "webpack5testing0d91e8b3": {
             "IdentityPoolId": "string",
             "IdentityPoolName": "string",
+            "HostedUIDomain": "string",
+            "OAuthMetadata": "string",
             "UserPoolId": "string",
             "UserPoolArn": "string",
             "UserPoolName": "string",
