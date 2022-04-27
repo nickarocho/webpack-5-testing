@@ -1,0 +1,11 @@
+{
+  "AppSyncApiName": "webpack5testing",
+  "DynamoDBBillingMode": "PAY_PER_REQUEST",
+  "DynamoDBEnableServerSideEncryption": false,
+  "AuthCognitoUserPoolId": {
+    "Fn::GetAtt": [
+      "authwebpack5testing0d91e8b3",
+      "Outputs.UserPoolId"
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "serviceConfiguration": {
+    "apiName": "webpack5testing",
+    "serviceName": "AppSync",
+    "gqlSchemaPath": "/Users/nicaroch/code/amplify/nick-amplify-sample-apps/next/webpack-5-testing/amplify/backend/api/webpack5testing/schema.graphql",
+    "defaultAuthType": {
+      "mode": "API_KEY",
+      "expirationTime": 7
+    },
+    "conflictResolution": {
+      "defaultResolutionStrategy": {
+        "type": "AUTOMERGE"
+      }
+    },
+    "additionalAuthTypes": [
+      {
+        "mode": "AMAZON_COGNITO_USER_POOLS",
+        "cognitoUserPoolId": "authwebpack5testing0d91e8b3"
+      }
+    ]
+  }
+}

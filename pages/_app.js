@@ -1,7 +1,11 @@
-import '../styles/globals.css'
+import Amplify from "aws-amplify";
 
-function MyApp({ Component, pageProps }) {
-  return <Component {...pageProps} />
+import "../styles/globals.css";
+import "@aws-amplify/ui-react/styles.css"; // default theme
+import awsExports from "../src/aws-exports";
+
+Amplify.configure({ ...awsExports, ssr: true });
+
+export default function App({ Component, pageProps }) {
+  return <Component {...pageProps} />;
 }
-
-export default MyApp
