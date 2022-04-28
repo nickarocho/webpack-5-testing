@@ -68,39 +68,9 @@
 .grid {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   flex-wrap: wrap;
   max-width: 800px;
-}
-
-.card {
-  margin: 1rem;
-  padding: 1.5rem;
-  text-align: left;
-  color: inherit;
-  text-decoration: none;
-  border: 1px solid #eaeaea;
-  border-radius: 10px;
-  transition: color 0.15s ease, border-color 0.15s ease;
-  max-width: 300px;
-}
-
-.card:hover,
-.card:focus,
-.card:active {
-  color: #0070f3;
-  border-color: #0070f3;
-}
-
-.card h2 {
-  margin: 0 0 1rem 0;
-  font-size: 1.5rem;
-}
-
-.card p {
-  margin: 0;
-  font-size: 1.25rem;
-  line-height: 1.5;
 }
 
 .logo {
@@ -113,4 +83,54 @@
     width: 100%;
     flex-direction: column;
   }
+}
+
+.gridContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: stretch;
+  padding: 0;
+  margin: -1rem;
+}
+.row {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: inherit;
+  align-items: stretch;
+  width: 100% !important;
+  padding: 1rem 0;
+}
+.rowTitle {
+  display: block !important;
+  text-align: center;
+  font-size: 2rem;
+  margin-top: 10px;
+}
+.column {
+  width: 33.3333333%;
+  position: relative;
+  display: inline-block;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  vertical-align: top;
+}
+.card {
+  max-width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 290px;
+  min-height: 0;
+  background: #fff;
+  border: none;
+  border-radius: 0.28571429rem;
+  box-shadow: 0 1px 3px 0 #d4d4d5, 0 0 0 1px #d4d4d5;
+  transition: box-shadow 0.1s ease, transform 0.1s ease;
+  flex-grow: 1;
+  margin: 0;
+  padding: 1em;
+  font-size: 1em;
 }

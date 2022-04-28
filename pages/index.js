@@ -1,11 +1,54 @@
 import { Radio, RadioGroupField } from "@aws-amplify/ui-react";
-import { Auth } from "aws-amplify";
+import { Auth, API, withSSRContext } from "aws-amplify";
 import { CognitoHostedUIIdentityProvider } from "@aws-amplify/auth";
 import { Hub, Logger } from "aws-amplify";
 import { useState, useEffect } from "react";
 import "@aws-amplify/ui-react/styles.css";
+import styles from "../styles/Home.module.css";
 
-export default function Home() {
+import Head from "next/head";
+
+import { createPost } from "../src/graphql/mutations";
+import { listPosts } from "../src/graphql/queries";
+
+export async function getServerSideProps({ req }) {
+  const SSR = withSSRContext({ req });
+  const response = await SSR.API.graphql({ query: listPosts });
+
+  console.log({ response });
+
+  return {
+    props: {
+      posts: response.data.listPosts.items,
+    },
+  };
+}
+
+const handleCreatePost = async (e) => {
+  e.preventDefault();
+
+  const form = new FormData(e.target);
+
+  try {
+    const { data } = await API.graphql({
+      authMode: "AMAZON_COGNITO_USER_POOLS",
+      query: createPost,
+      variables: {
+        input: {
+          title: form.get("title"),
+          content: form.get("content"),
+        },
+      },
+    });
+
+    window.location.href = `/posts/${data.createPost.id}`;
+  } catch ({ errors }) {
+    console.error(...errors);
+    throw new Error(errors[0].message);
+  }
+};
+
+export default function Home({ posts = [] }) {
   useEffect(() => {
     getCurrentUser();
 
@@ -194,79 +237,143 @@ export default function Home() {
   };
 
   return (
-    <main>
-      <h1>Next.js App</h1>
-      <h3>{authState}</h3>
-      <h4>user: {user ? user.username : "none"}</h4>
+    <div className={styles.container}>
+      <main className={styles.main}>
+        <Head>
+          <title>Amplify + Next.js</title>
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
 
-      {authState !== "signed in!" && (
-        <RadioGroupField
-          label="Auth Method:"
-          name="shugo-sign-in-options"
-          defaultValue={methods[0]}
-          direction="row"
-        >
-          {methods.map((option) => (
-            <Radio
-              selected={authMethod === option}
-              key={option}
-              value={option}
-              onChange={handleRadioSelection}
-            >
-              {option}
-            </Radio>
-          ))}
-        </RadioGroupField>
-      )}
+        <h1 className={styles.title}>Amplify + Next.js SUPER App 💪</h1>
+        <h3>{authState}</h3>
+        <h4>user: {user ? user.username : "none"}</h4>
 
-      {/* not signed in */}
-      {(authState !== "signed in!" || !user) && (
-        <form onSubmit={handleSubmit}>
-          {(authState === "not signed in" ||
-            authState === "sign in" ||
-            authState === "sign up") && (
-            <>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                placeholder="Username"
-              />
-              <input
-                type="password"
-                id="password"
-                name="password"
-                placeholder="Password"
-              />
-            </>
-          )}
-          {/* confirm user code input */}
-          {authState === "awaiting verification" && (
-            <input type="text" id="code" name="code" placeholder="code" />
-          )}
-          <input type="submit" value={authMethod} />
-          <button
-            onClick={() =>
-              Auth.federatedSignIn({
-                provider: CognitoHostedUIIdentityProvider.Google,
-              })
-            }
+        {authState !== "signed in!" && (
+          <RadioGroupField
+            label="Auth Method:"
+            name="shugo-sign-in-options"
+            defaultValue={methods[0]}
+            direction="row"
           >
-            Open Google
-          </button>
-        </form>
-      )}
-      {/* signed in */}
-      {authState === "signed in!" && user && (
-        <>
-          <h2>welcome, {user.username}</h2>
-          <button onClick={handleDeleteUser}>Delete Yo Self</button>
-          <button onClick={handleSignOut}>Sign Out</button>
-          <button onClick={handleFetchDevices}>Fetch Devices</button>
-          <button onClick={handleRememberDevice}>Remember This Device</button>
-          <button onClick={handleForgetDevice}>Forget This Device</button>
-        </>
-      )}
-    </main>
+            {methods.map((option) => (
+              <Radio
+                selected={authMethod === option}
+                key={option}
+                value={option}
+                onChange={handleRadioSelection}
+              >
+                {option}
+              </Radio>
+            ))}
+          </RadioGroupField>
+        )}
+
+        {/* not signed in */}
+        {(authState !== "signed in!" || !user) && (
+          <form onSubmit={handleSubmit}>
+            {(authState === "not signed in" ||
+              authState === "sign in" ||
+              authState === "sign up") && (
+              <>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  placeholder="Username"
+                />
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Password"
+                />
+              </>
+            )}
+            {/* confirm user code input */}
+            {authState === "awaiting verification" && (
+              <input type="text" id="code" name="code" placeholder="code" />
+            )}
+            <input type="submit" value={authMethod} />
+            <button
+              onClick={() =>
+                Auth.federatedSignIn({
+                  provider: CognitoHostedUIIdentityProvider.Google,
+                })
+              }
+            >
+              Open Google
+            </button>
+          </form>
+        )}
+        {/* signed in */}
+        {authState === "signed in!" && user && (
+          <div>
+            <div>
+              <div className={`${styles.rowTitle} ${styles.row}`}>
+                <h2>Auth stuff</h2>
+                <h3>welcome, {user.username}</h3>
+              </div>
+              <button onClick={handleDeleteUser}>Delete Yo Self</button>
+              <button onClick={handleSignOut}>Sign Out</button>
+              <button onClick={handleFetchDevices}>Fetch Devices</button>
+              <button onClick={handleRememberDevice}>
+                Remember This Device
+              </button>
+              <button onClick={handleForgetDevice}>Forget This Device</button>
+            </div>
+
+            <div className={styles.gridContainer}>
+              <div className={`${styles.rowTitle} ${styles.row}`}>
+                <h2>Datastore stuff</h2>
+                <p>
+                  <code className={styles.code}>{posts.length}</code>
+                  posts
+                </p>
+              </div>
+
+              <div className={styles.row}>
+                {posts.map((post) => (
+                  <div className={styles.column} key={post.id}>
+                    <div className={styles.card}>
+                      <a href={`/posts/${post.id}`}>
+                        <h3>{post.title}</h3>
+                        <p>{post.content}</p>
+                      </a>
+                    </div>
+                  </div>
+                ))}
+                <div className={styles.column}>
+                  <div className={styles.card}>
+                    <h3>New Post</h3>
+                    <form onSubmit={handleCreatePost}>
+                      <fieldset>
+                        <legend>Title</legend>
+                        <input
+                          defaultValue={`Today, ${new Date().toLocaleTimeString()}`}
+                          name="title"
+                        />
+                      </fieldset>
+
+                      <fieldset>
+                        <legend>Content</legend>
+                        <textarea
+                          defaultValue="I built an Amplify app with Next.js!"
+                          name="content"
+                        />
+                      </fieldset>
+
+                      <button>Create Post</button>
+                      <button type="button" onClick={() => Auth.signOut()}>
+                        Sign out
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
   );
 }
