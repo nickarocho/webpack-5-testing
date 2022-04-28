@@ -1,21 +1,21 @@
-import { Radio, RadioGroupField } from "@aws-amplify/ui-react";
+// Amplify
+import { AmplifyProvider, Radio, RadioGroupField } from "@aws-amplify/ui-react";
 import { Auth, API, withSSRContext } from "aws-amplify";
 import { CognitoHostedUIIdentityProvider } from "@aws-amplify/auth";
 import { Hub, Logger } from "aws-amplify";
-import { useState, useEffect } from "react";
-import "@aws-amplify/ui-react/styles.css";
-import styles from "../styles/Home.module.css";
-
-import Head from "next/head";
-
 import { createPost } from "../src/graphql/mutations";
 import { listPosts } from "../src/graphql/queries";
+
+// Next/React
+import { useState, useEffect } from "react";
+import Head from "next/head";
+
+// Styles
+import styles from "../styles/Home.module.css";
 
 export async function getServerSideProps({ req }) {
   const SSR = withSSRContext({ req });
   const response = await SSR.API.graphql({ query: listPosts });
-
-  console.log({ response });
 
   return {
     props: {
@@ -82,8 +82,8 @@ export default function Home({ posts = [] }) {
     Hub.listen("auth", listener);
   }, []);
 
-  const methods = ["sign in", "sign up"];
-  const [authMethod, setAuthMethod] = useState("sign in");
+  const methods = ["sign-in", "sign-up"];
+  const [authMethod, setAuthMethod] = useState("sign-in");
   const [authState, setAuthState] = useState("not signed in");
   const [user, setUser] = useState(null);
 
@@ -218,17 +218,17 @@ export default function Home({ posts = [] }) {
 
     const form = new FormData(e.target);
 
-    switch (authMethod) {
-      case "sign in":
+    switch (authMethod.replace(/\s+/g, "-")) {
+      case "sign-in":
         handleSignIn(form);
         break;
-      case "sign up":
+      case "sign-up":
         handleSignUp(form);
         break;
-      case "confirm sign up":
+      case "confirm-sign-up":
         handleConfirmSignUp(form);
         break;
-      case "sign out":
+      case "sign-out":
         handleSignOut();
         break;
       default:
@@ -238,142 +238,172 @@ export default function Home({ posts = [] }) {
 
   return (
     <div className={styles.container}>
-      <main className={styles.main}>
-        <Head>
-          <title>Amplify + Next.js</title>
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
+      <Head>
+        <title>Amplify + Next.js</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
 
-        <h1 className={styles.title}>Amplify + Next.js SUPER App 💪</h1>
-        <h3>{authState}</h3>
-        <h4>user: {user ? user.username : "none"}</h4>
-
-        {authState !== "signed in!" && (
-          <RadioGroupField
-            label="Auth Method:"
-            name="shugo-sign-in-options"
-            defaultValue={methods[0]}
-            direction="row"
-          >
-            {methods.map((option) => (
-              <Radio
-                selected={authMethod === option}
-                key={option}
-                value={option}
-                onChange={handleRadioSelection}
-              >
-                {option}
-              </Radio>
-            ))}
-          </RadioGroupField>
-        )}
+      {/* nav bar w/ full Auth functionality */}
+      {/* TODO: abstract to component */}
+      <header className={styles.navBar}>
+        <p className={styles.siteTitle}>Amplify x Next Super App</p>
 
         {/* not signed in */}
         {(authState !== "signed in!" || !user) && (
-          <form onSubmit={handleSubmit}>
-            {(authState === "not signed in" ||
-              authState === "sign in" ||
-              authState === "sign up") && (
-              <>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  placeholder="Username"
-                />
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  placeholder="Password"
-                />
-              </>
-            )}
-            {/* confirm user code input */}
-            {authState === "awaiting verification" && (
-              <input type="text" id="code" name="code" placeholder="code" />
-            )}
-            <input type="submit" value={authMethod} />
-            <button
-              onClick={() =>
-                Auth.federatedSignIn({
-                  provider: CognitoHostedUIIdentityProvider.Google,
-                })
-              }
-            >
-              Open Google
-            </button>
-          </form>
+          <div className={styles.authContainer}>
+            <details className={styles.authDropdown}>
+              <summary>Sign In / Sign Up</summary>
+              <div className={styles.authDropdownContent}>
+                <form className={styles.authForm} onSubmit={handleSubmit}>
+                  {(authState === "not signed in" ||
+                    authState === "sign in" ||
+                    authState === "sign up") && (
+                    <>
+                      <fieldset
+                        className={styles.authTypes}
+                        onChange={(e) => setAuthMethod(e.target.value)}
+                      >
+                        {methods.map((method) => {
+                          const methodEncoded = method.replace(/\s+/g, "-");
+                          return (
+                            <div key={`${method}`}>
+                              <input
+                                type="radio"
+                                id={`${methodEncoded}-radio`}
+                                name="authType"
+                                value={methodEncoded}
+                                defaultChecked={methods[0] === methodEncoded}
+                              />
+                              <label htmlFor={`${methodEncoded}-radio`}>
+                                {method.replace(/-/g, " ")}
+                              </label>
+                            </div>
+                          );
+                        })}
+                      </fieldset>
+                      <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Username"
+                        className={styles.authInput}
+                      />
+                      <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Password"
+                        className={styles.authInput}
+                      />
+                    </>
+                  )}
+                  {/* confirm user code input */}
+                  {authState === "awaiting verification" && (
+                    <input
+                      type="text"
+                      id="code"
+                      name="code"
+                      placeholder="code"
+                      className={styles.authAction}
+                    />
+                  )}
+                  <input
+                    type="submit"
+                    value={authMethod.replace(/-/g, " ")}
+                    className={styles.authAction}
+                  />
+                  <hr />
+                  <div>
+                    <button
+                      className={`${styles.authAction} ${styles.authActionGoogle}`}
+                      onClick={() =>
+                        Auth.federatedSignIn({
+                          provider: CognitoHostedUIIdentityProvider.Google,
+                        })
+                      }
+                    >
+                      Google Sign In →
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </details>
+          </div>
         )}
-        {/* signed in */}
         {authState === "signed in!" && user && (
           <div>
-            <div>
-              <div className={`${styles.rowTitle} ${styles.row}`}>
-                <h2>Auth stuff</h2>
-                <h3>welcome, {user.username}</h3>
-              </div>
-              <button onClick={handleDeleteUser}>Delete Yo Self</button>
-              <button onClick={handleSignOut}>Sign Out</button>
-              <button onClick={handleFetchDevices}>Fetch Devices</button>
-              <button onClick={handleRememberDevice}>
-                Remember This Device
-              </button>
-              <button onClick={handleForgetDevice}>Forget This Device</button>
-            </div>
-
-            <div className={styles.gridContainer}>
-              <div className={`${styles.rowTitle} ${styles.row}`}>
-                <h2>Datastore stuff</h2>
-                <p>
-                  <code className={styles.code}>{posts.length}</code>
-                  posts
-                </p>
-              </div>
-
-              <div className={styles.row}>
-                {posts.map((post) => (
-                  <div className={styles.column} key={post.id}>
-                    <div className={styles.card}>
-                      <a href={`/posts/${post.id}`}>
-                        <h3>{post.title}</h3>
-                        <p>{post.content}</p>
-                      </a>
-                    </div>
-                  </div>
-                ))}
-                <div className={styles.column}>
-                  <div className={styles.card}>
-                    <h3>New Post</h3>
-                    <form onSubmit={handleCreatePost}>
-                      <fieldset>
-                        <legend>Title</legend>
-                        <input
-                          defaultValue={`Today, ${new Date().toLocaleTimeString()}`}
-                          name="title"
-                        />
-                      </fieldset>
-
-                      <fieldset>
-                        <legend>Content</legend>
-                        <textarea
-                          defaultValue="I built an Amplify app with Next.js!"
-                          name="content"
-                        />
-                      </fieldset>
-
-                      <button>Create Post</button>
-                      <button type="button" onClick={() => Auth.signOut()}>
-                        Sign out
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              </div>
+            <div className={styles.userContainer}>
+              <h3>welcome, {user.username}</h3>
+              <details className={styles.userControls}>
+                <summary></summary>
+                <button onClick={handleDeleteUser}>Delete Yo Self</button>
+                <button onClick={handleFetchDevices}>Fetch Devices</button>
+                <button onClick={handleRememberDevice}>
+                  Remember This Device
+                </button>
+                <button onClick={handleForgetDevice}>Forget This Device</button>
+                <button onClick={handleSignOut}>Sign Out</button>
+              </details>
             </div>
           </div>
         )}
-      </main>
+      </header>
+
+      {/* signed in - show the important content */}
+      {authState === "signed in!" && user ? (
+        <main className={styles.main}>
+          <div className={`${styles.rowTitle} ${styles.row}`}>
+            <p>
+              <code className={styles.code}>{posts.length}</code>
+              posts
+            </p>
+          </div>
+
+          <div className={styles.row}>
+            {posts.map((post) => (
+              <div className={styles.column} key={post.id}>
+                <div className={styles.card}>
+                  <a href={`/posts/${post.id}`}>
+                    <h3>{post.title}</h3>
+                    <p>{post.content}</p>
+                  </a>
+                </div>
+              </div>
+            ))}
+            <div className={styles.column}>
+              <div className={styles.card}>
+                <h3>✏️ New Post</h3>
+                <form onSubmit={handleCreatePost}>
+                  <fieldset>
+                    <legend>Title</legend>
+                    <input
+                      defaultValue={`Today, ${new Date().toLocaleTimeString()}`}
+                      name="title"
+                    />
+                  </fieldset>
+
+                  <fieldset>
+                    <legend>Content</legend>
+                    <textarea
+                      defaultValue="I built an Amplify app with Next.js!"
+                      name="content"
+                    />
+                  </fieldset>
+
+                  <button>Create Post</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </main>
+      ) : (
+        <main className={styles.main}>
+          <div className={styles.defaultBody}>
+            <h1>not signed in... ✋</h1>
+            <h2>Sign in or sign up to see this rad app 👆</h2>
+          </div>
+        </main>
+      )}
     </div>
   );
 }

@@ -4,12 +4,20 @@
 
 .main {
   min-height: 100vh;
-  padding: 4rem 0;
+  padding-top: 7rem;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.defaultBody {
+  height: 100%;
+  text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  flex: 1;
 }
 
 .footer {
@@ -85,13 +93,91 @@
   }
 }
 
+.navBar {
+  display: flex;
+  width: 100vw;
+  position: fixed;
+  z-index: 990;
+  top: 0;
+  left: 0;
+  background: black;
+  color: white;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0;
+}
+
+.siteTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  padding: 0 1rem;
+}
+
+.authContainer,
+.userContainer {
+  position: relative;
+  min-width: 300px;
+  min-height: 1rem;
+}
+.authDropdown {
+  position: absolute;
+  top: 0;
+  background: black;
+  color: white;
+  width: 100%;
+}
+.authDropdownContent {
+  padding: 2rem;
+}
+.authTypes {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 1rem 0;
+}
+.authInput {
+  width: 100%;
+  min-height: 2.5rem;
+}
+.authAction {
+  width: 100%;
+  text-transform: capitalize;
+  min-height: 2.5rem;
+}
+.authAction:hover {
+  cursor: pointer;
+}
+
+.userContainer h3 {
+  font-size: 1rem;
+}
+
+.userControls {
+  position: absolute;
+  top: 0;
+  left: -1rem;
+  z-index: 999;
+  display: block;
+  min-width: 200px;
+}
+
+.userControls button {
+  text-align: left;
+  width: 100%;
+  color: white;
+  background: black;
+  padding: 0.5rem 1rem;
+}
+.userControls button:hover {
+  cursor: pointer;
+  background: rgb(19, 19, 19);
+}
+
 .gridContainer {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   align-items: stretch;
-  padding: 0;
-  margin: -1rem;
 }
 .row {
   position: relative;
@@ -134,3 +220,11 @@
   padding: 1em;
   font-size: 1em;
 }
+
+/* utils */
+.flexCol {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Amplify UI overrides */
