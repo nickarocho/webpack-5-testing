@@ -333,16 +333,21 @@ export default function Home({ posts = [] }) {
         {authState === "signed in!" && user && (
           <div>
             <div className={styles.userContainer}>
-              <h3>welcome, {user.username}</h3>
+              <h3>Welcome, {user.username}!</h3>
               <details className={styles.userControls}>
                 <summary></summary>
-                <button onClick={handleDeleteUser}>Delete Yo Self</button>
                 <button onClick={handleFetchDevices}>Fetch Devices</button>
                 <button onClick={handleRememberDevice}>
                   Remember This Device
                 </button>
                 <button onClick={handleForgetDevice}>Forget This Device</button>
                 <button onClick={handleSignOut}>Sign Out</button>
+                <button
+                  style={{ background: "#ac1515" }}
+                  onClick={handleDeleteUser}
+                >
+                  Delete Your Account
+                </button>
               </details>
             </div>
           </div>
