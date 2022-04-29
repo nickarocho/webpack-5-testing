@@ -224,10 +224,13 @@
   font-size: 1em;
 }
 
+.postOwner {
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
 /* utils */
 .flexCol {
   display: flex;
   flex-direction: column;
 }
-
-/* Amplify UI overrides */
