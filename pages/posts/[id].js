@@ -47,8 +47,8 @@ export async function getStaticProps({ params }) {
 export default function Post({ post }) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
-  const user = useUser();
-  const isPostOwner = user?.username === post.owner;
+  const { user, authenticated } = useUser();
+  const isPostOwner = user?.username === post.owner && authenticated;
 
   if (router.isFallback) {
     return (
@@ -91,7 +91,9 @@ export default function Post({ post }) {
         query: mutations.updatePost,
         variables: { input: updatedPost },
       });
-      console.log({ result });
+      setIsEditing(false);
+      // lazy UX fix... should re-render based on the `result`
+      router.push("/");
     } catch (err) {
       console.error("Error updating post: ", err);
     }

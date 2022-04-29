@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import Amplify, { Auth, Hub } from "aws-amplify";
-
 import { UserContext } from "../components/user";
 
 import "../styles/globals.css";
@@ -22,7 +21,6 @@ export default function App({ Component, pageProps }) {
     try {
       const user = await Auth.currentAuthenticatedUser();
       setUser(user);
-      console.log({ user });
     } catch (err) {
       setUser(null);
       console.error("error getting user in _app.js: ", err);
@@ -115,8 +113,8 @@ export default function App({ Component, pageProps }) {
       });
       setUser(user);
       if (user && !user.signInUserSession) {
-        setAuthState("awaiting verification");
-        setAuthMethod("confirm sign up");
+        setAuthState("awaiting-verification");
+        setAuthMethod("confirm-sign-up");
       }
     } catch (err) {
       console.error("sign up error: ", err);
@@ -124,13 +122,16 @@ export default function App({ Component, pageProps }) {
   };
 
   const handleConfirmSignUp = async (data) => {
-    const code = data.get("code");
-    if (!code) {
-      throw new Error("no code provided!");
-    }
-
     try {
+      const code = data.get("code");
+      if (!code) {
+        throw new Error("no code provided!");
+      }
+      if (!user) {
+        throw new Error("no user to find user.username");
+      }
       const result = await Auth.confirmSignUp(user.username, code);
+      console.log("confirm sign in result: ", { result });
       if (result === "SUCCESS") {
         setAuthState("not signed in");
         setAuthMethod("sign in");
@@ -146,10 +147,29 @@ export default function App({ Component, pageProps }) {
     getCurrentUser();
   };
 
+  const promptUser = (e) => {
+    const answer = prompt(
+      "Are you SURE you want to delete your account? If so, type your username here:"
+    );
+    if (answer === null) {
+      alert("Whew... that was a close one 😅");
+    } else if (answer.toLowerCase() === user.username.toLowerCase()) {
+      alert("Sorry to see you go... bon voyage 👋");
+      handleDeleteUser();
+    } else {
+      alert(
+        "The username you typed didn't match. Try again... or reconsider? 🥺."
+      );
+      promptUser(e);
+    }
+  };
+
   const handleDeleteUser = async () => {
     try {
       const result = await Auth.deleteUser();
-      console.log({ result });
+      if (result === "SUCCESS") {
+        getCurrentUser();
+      }
     } catch (error) {
       console.error("Error deleting user", error);
     }
@@ -210,19 +230,23 @@ export default function App({ Component, pageProps }) {
   }
 
   return (
-    <UserContext.Provider value={user}>
+    <UserContext.Provider
+      value={{ user, authenticated: user?.signInUserSession ? true : false }}
+    >
       {/* TODO: abstract the header & auth logic to its own component */}
       <header className={styles.navBar}>
+        {/* site title */}
         <Link href="/">
           <a className={styles.siteTitle}>Amplify x Next Super App</a>
         </Link>
 
-        {!user ? (
+        {!user?.signInUserSession ? (
           // not signed in
-          <div className={styles.authContainer}>
-            <details className={styles.authDropdown}>
-              <summary>Sign In / Sign Up</summary>
-              <div className={styles.authDropdownContent}>
+          <div>
+            <div className={styles.authContainer}>
+              <h3>Sign In / Sign Up</h3>
+              <details className={styles.authDropdown}>
+                <summary className={styles.dropdownLabel}></summary>
                 <form className={styles.authForm} onSubmit={handleSubmitAuth}>
                   {(authState === "not signed in" ||
                     authState === "sign in" ||
@@ -243,7 +267,10 @@ export default function App({ Component, pageProps }) {
                                 value={methodEncoded}
                                 defaultChecked={methods[0] === methodEncoded}
                               />
-                              <label htmlFor={`${methodEncoded}-radio`}>
+                              <label
+                                className={styles.radioLabel}
+                                htmlFor={`${methodEncoded}-radio`}
+                              >
                                 {method.replace(/-/g, " ")}
                               </label>
                             </div>
@@ -267,21 +294,23 @@ export default function App({ Component, pageProps }) {
                     </>
                   )}
                   {/* confirm user code input */}
-                  {authState === "awaiting verification" && (
+                  {authState === "awaiting-verification" && (
                     <input
                       type="text"
                       id="code"
                       name="code"
-                      placeholder="code"
-                      className={styles.authAction}
+                      placeholder="Code"
+                      className={`${styles.authInput} ${styles.authInputCode}`}
                     />
                   )}
+                  {/* auth submit btn */}
                   <input
                     type="submit"
                     value={authMethod.replace(/-/g, " ")}
                     className={styles.authAction}
                   />
-                  <hr />
+                  <span className={styles.buttonDivider}>or</span>
+                  {/* social sign in btn */}
                   <div>
                     <button
                       className={`${styles.authAction} ${styles.authActionGoogle}`}
@@ -291,29 +320,26 @@ export default function App({ Component, pageProps }) {
                         })
                       }
                     >
-                      Google Sign In →
+                      Continue with Google →
                     </button>
                   </div>
                 </form>
-              </div>
-            </details>
+              </details>
+            </div>
           </div>
         ) : (
-          // signed in
+          // signed in - show account controls
           <div>
             <div className={styles.userContainer}>
               <h3>Welcome, {user.username}!</h3>
               <details className={styles.userControls}>
-                <summary></summary>
+                <summary className={styles.dropdownLabel}></summary>
                 <button onClick={handleFetchDevices}>Fetch Devices</button>
                 <button onClick={handleRememberDevice}>
                   Remember This Device
                 </button>
                 <button onClick={handleForgetDevice}>Forget This Device</button>
-                <button
-                  style={{ background: "#ac1515" }}
-                  onClick={handleDeleteUser}
-                >
+                <button style={{ background: "#ac1515" }} onClick={promptUser}>
                   Delete Your Account
                 </button>
                 <button onClick={handleSignOut}>Sign Out</button>

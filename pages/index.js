@@ -1,13 +1,9 @@
 // Amplify
-import { AmplifyProvider, Radio, RadioGroupField } from "@aws-amplify/ui-react";
-import { Auth, API, withSSRContext } from "aws-amplify";
-import { CognitoHostedUIIdentityProvider } from "@aws-amplify/auth";
-import { Hub, Logger } from "aws-amplify";
+import { API, withSSRContext } from "aws-amplify";
 import { createPost } from "../src/graphql/mutations";
 import { listPosts } from "../src/graphql/queries";
 
 // Next/React
-import { useState, useEffect } from "react";
 import Head from "next/head";
 
 // Styles
@@ -28,7 +24,7 @@ export async function getServerSideProps({ req }) {
 }
 
 export default function Home({ posts = [] }) {
-  const user = useUser();
+  const { authenticated } = useUser();
   const router = useRouter();
 
   const handleCreatePost = async (e) => {
@@ -63,7 +59,7 @@ export default function Home({ posts = [] }) {
       </Head>
 
       {/* signed in - show the important content */}
-      {user ? (
+      {authenticated ? (
         <main className={styles.main}>
           <div className={`${styles.rowTitle} ${styles.row}`}>
             <p>
