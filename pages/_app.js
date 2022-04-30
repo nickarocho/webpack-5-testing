@@ -332,16 +332,14 @@ export default function App({ Component, pageProps }) {
           <div>
             <div className={styles.userContainer}>
               <h3>Welcome, {user.username}!</h3>
-              <details className={styles.userControls}>
+              <details className={styles.userControls} open={false}>
                 <summary className={styles.dropdownLabel}></summary>
                 <button onClick={handleFetchDevices}>Fetch Devices</button>
                 <button onClick={handleRememberDevice}>
                   Remember This Device
                 </button>
                 <button onClick={handleForgetDevice}>Forget This Device</button>
-                <button style={{ background: "#ac1515" }} onClick={promptUser}>
-                  Delete Your Account
-                </button>
+                <button onClick={promptUser}>Delete Your Account</button>
                 <button onClick={handleSignOut}>Sign Out</button>
               </details>
             </div>
