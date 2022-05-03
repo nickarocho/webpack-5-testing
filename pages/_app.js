@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Amplify, { Auth, Hub } from "aws-amplify";
+import Amplify, { Auth, Hub, AuthModeStrategyType } from "aws-amplify";
 import { UserContext } from "../components/user";
 
 import "../styles/globals.css";
@@ -9,7 +9,13 @@ import awsExports from "../src/aws-exports";
 import styles from "../styles/Home.module.css";
 import Link from "next/link";
 
-Amplify.configure({ ...awsExports, ssr: true });
+Amplify.configure({
+  ...awsExports,
+  ssr: true,
+  DataStore: {
+    authModeStrategyType: AuthModeStrategyType.MULTI_AUTH,
+  },
+});
 
 export default function App({ Component, pageProps }) {
   const [user, setUser] = useState(null);

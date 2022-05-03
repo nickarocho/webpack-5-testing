@@ -9,6 +9,9 @@ export const onCreatePost = /* GraphQL */ `
       content
       createdAt
       updatedAt
+      _version
+      _deleted
+      _lastChangedAt
       owner
     }
   }
@@ -21,6 +24,9 @@ export const onUpdatePost = /* GraphQL */ `
       content
       createdAt
       updatedAt
+      _version
+      _deleted
+      _lastChangedAt
       owner
     }
   }
@@ -33,6 +39,9 @@ export const onDeletePost = /* GraphQL */ `
       content
       createdAt
       updatedAt
+      _version
+      _deleted
+      _lastChangedAt
       owner
     }
   }

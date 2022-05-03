@@ -5,10 +5,10 @@ import { useState } from "react";
 import { useUser } from "../../components/user";
 
 // Amplify
-import { Amplify, API, withSSRContext } from "aws-amplify";
+import { Amplify, DataStore, withSSRContext } from "aws-amplify";
+import { serializeModel } from "@aws-amplify/datastore/ssr";
 import awsExports from "../../src/aws-exports";
-import { getPost, listPosts } from "../../src/graphql/queries";
-import * as mutations from "../../src/graphql/mutations";
+import { Post } from "../../src/models";
 
 // Styles
 import styles from "../../styles/Home.module.css";
@@ -16,11 +16,9 @@ import styles from "../../styles/Home.module.css";
 Amplify.configure({ ...awsExports, ssr: true });
 
 export async function getStaticPaths() {
-  const SSR = withSSRContext();
-  const { data } = await SSR.API.graphql({ query: listPosts });
-  const paths = data.listPosts.items.map((post) => ({
-    params: { id: post.id },
-  }));
+  const { DataStore } = withSSRContext();
+  const posts = await DataStore.query(Post);
+  const paths = posts.map((post) => ({ params: { id: post.id } }));
 
   return {
     fallback: true,
@@ -29,49 +27,32 @@ export async function getStaticPaths() {
 }
 
 export async function getStaticProps({ params }) {
-  const SSR = withSSRContext();
-  const { data } = await SSR.API.graphql({
-    query: getPost,
-    variables: {
-      id: params.id,
-    },
-  });
+  const { DataStore } = withSSRContext();
+  const { id } = params;
+  const post = await DataStore.query(Post, id);
 
   return {
     props: {
-      post: data.getPost,
+      post: serializeModel(post),
     },
   };
 }
 
-export default function Post({ post }) {
+export default function PostComponent({ post }) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const { user, authenticated } = useUser();
   const isPostOwner = user?.username === post.owner && authenticated;
 
-  if (router.isFallback) {
-    return (
-      <div className={styles.container}>
-        <h1 className={styles.title}>Loading&hellip;</h1>
-      </div>
-    );
-  }
-
   async function handleDelete() {
     try {
-      await API.graphql({
-        authMode: "AMAZON_COGNITO_USER_POOLS",
-        query: mutations.deletePost,
-        variables: {
-          input: { id: post.id },
-        },
-      });
+      const toDelete = await DataStore.query(Post, post.id);
+      await DataStore.delete(toDelete);
 
       router.push("/");
-    } catch ({ errors }) {
-      console.error(...errors);
-      throw new Error(errors[0].message);
+    } catch (err) {
+      console.error(err);
+      throw new Error(err);
     }
   }
 
@@ -86,23 +67,33 @@ export default function Post({ post }) {
     };
 
     try {
-      const result = await API.graphql({
-        authMode: "AMAZON_COGNITO_USER_POOLS",
-        query: mutations.updatePost,
-        variables: { input: updatedPost },
-      });
+      const original = await DataStore.query(Post, post.id);
+      await DataStore.save(
+        Post.copyOf(original, (updated) => {
+          Object.assign(updated, updatedPost);
+        })
+      );
+
       setIsEditing(false);
-      // lazy UX fix... should re-render based on the `result`
+      // lazy UX fix... should re-render based on the result of the mutation
       router.push("/");
     } catch (err) {
       console.error("Error updating post: ", err);
     }
   }
 
+  if (router.isFallback) {
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.title}>Loading&hellip;</h1>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <Head>
-        <title>{post.title} - Amplify + Next.js</title>
+        <title>{post?.title} - Amplify + Next.js</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -112,12 +103,12 @@ export default function Post({ post }) {
             <form onSubmit={handleUpdate}>
               <fieldset>
                 <legend>Title</legend>
-                <input defaultValue={post.title} name="title" />
+                <input defaultValue={post?.title} name="title" />
               </fieldset>
 
               <fieldset>
                 <legend>Content</legend>
-                <textarea defaultValue={post.content} name="content" />
+                <textarea defaultValue={post?.content} name="content" />
               </fieldset>
 
               <button>Update Post</button>
@@ -125,9 +116,9 @@ export default function Post({ post }) {
           </>
         ) : (
           <>
-            <h1 className={styles.title}>{post.title}</h1>
-            <h3 className={styles.description}>By: {post.owner}</h3>
-            <p className={styles.description}>{post.content}</p>
+            <h1 className={styles.title}>{post?.title}</h1>
+            <h3 className={styles.description}>By: {post?.owner}</h3>
+            <p className={styles.description}>{post?.content}</p>
           </>
         )}
 

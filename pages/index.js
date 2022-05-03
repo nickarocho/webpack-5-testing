@@ -1,10 +1,10 @@
 // Amplify
-import { API, withSSRContext } from "aws-amplify";
-import { createPost } from "../src/graphql/mutations";
-import { listPosts } from "../src/graphql/queries";
+import { DataStore } from "aws-amplify";
+import { Post } from "../src/models";
 
 // Next/React
 import Head from "next/head";
+import { useEffect, useState } from "react";
 
 // Styles
 import styles from "../styles/Home.module.css";
@@ -12,20 +12,21 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useUser } from "../components/user";
 
-export async function getServerSideProps({ req }) {
-  const SSR = withSSRContext({ req });
-  const response = await SSR.API.graphql({ query: listPosts });
-
-  return {
-    props: {
-      posts: response.data.listPosts.items,
-    },
-  };
-}
-
-export default function Home({ posts = [] }) {
+export default function Home() {
   const { authenticated } = useUser();
   const router = useRouter();
+
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    // DataStore.clear();
+    fetchPosts();
+    async function fetchPosts() {
+      const postData = await DataStore.query(Post);
+      setPosts(postData);
+    }
+    DataStore.observe(Post).subscribe(() => fetchPosts());
+  }, []);
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
@@ -33,21 +34,17 @@ export default function Home({ posts = [] }) {
     const form = new FormData(e.target);
 
     try {
-      const { data } = await API.graphql({
-        authMode: "AMAZON_COGNITO_USER_POOLS",
-        query: createPost,
-        variables: {
-          input: {
-            title: form.get("title"),
-            content: form.get("content"),
-          },
-        },
-      });
+      const post = await DataStore.save(
+        new Post({
+          title: form.get("title"),
+          content: form.get("content"),
+        })
+      );
 
-      router.push(`/posts/${data.createPost.id}`);
-    } catch ({ errors }) {
-      console.error(...errors);
-      throw new Error(errors[0].message);
+      // TODO: decide on the UX... should we route to the post after we create it?
+      // router.push(`/posts/${post.id}`);
+    } catch (err) {
+      console.error(err);
     }
   };
 

@@ -9,7 +9,8 @@
       "UnauthRoleName": "amplify-webpack5testing-dev-192401-unauthRole",
       "StackName": "amplify-webpack5testing-dev-192401",
       "StackId": "arn:aws:cloudformation:us-west-2:947511734122:stack/amplify-webpack5testing-dev-192401/f04b1c60-c507-11ec-9da8-02895a638c19",
-      "AmplifyAppId": "d2vz3545te2v5y"
+      "AmplifyAppId": "d2vz3545te2v5y",
+      "APIGatewayAuthURL": "https://s3.amazonaws.com/amplify-webpack5testing-dev-192401-deployment/amplify-cfn-templates/api/APIGatewayAuthStack.json"
     },
     "categories": {
       "auth": {

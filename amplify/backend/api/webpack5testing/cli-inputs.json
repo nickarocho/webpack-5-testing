@@ -6,9 +6,15 @@
     "gqlSchemaPath": "/Users/nicaroch/code/amplify/nick-amplify-sample-apps/next/webpack-5-testing/amplify/backend/api/webpack5testing/schema.graphql",
     "defaultAuthType": {
       "mode": "API_KEY",
-      "expirationTime": 7
+      "expirationTime": 365,
+      "apiKeyExpirationDate": "2023-05-02T18:28:43.905Z",
+      "keyDescription": "webpack5testing"
     },
-    "conflictResolution": {},
+    "conflictResolution": {
+      "defaultResolutionStrategy": {
+        "type": "AUTOMERGE"
+      }
+    },
     "additionalAuthTypes": [
       {
         "mode": "AMAZON_COGNITO_USER_POOLS",
