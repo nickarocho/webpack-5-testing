@@ -19,14 +19,25 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    // DataStore.clear();
     fetchPosts();
-    async function fetchPosts() {
+
+    let subscription;
+
+    subscription = DataStore.observe(Post).subscribe(() => fetchPosts());
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  async function fetchPosts() {
+    try {
       const postData = await DataStore.query(Post);
       setPosts(postData);
+    } catch (err) {
+      console.error("fetchPosts error: ", err);
     }
-    DataStore.observe(Post).subscribe(() => fetchPosts());
-  }, []);
+  }
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
@@ -45,6 +56,16 @@ export default function Home() {
       // router.push(`/posts/${post.id}`);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleClearPosts = async () => {
+    try {
+      await DataStore.clear();
+      console.log("DataStore cleared!");
+      fetchPosts();
+    } catch (err) {
+      console.error("DataStore clear error: ", err);
     }
   };
 
@@ -67,7 +88,10 @@ export default function Home() {
 
           <div className={styles.row}>
             {posts.map((post) => (
-              <div className={styles.column} key={post.id}>
+              <div
+                className={styles.column}
+                key={Math.ceil(Math.random() * Date.now())}
+              >
                 <div className={styles.card}>
                   <Link href={`/posts/${post.id}`}>
                     <a>
@@ -104,6 +128,9 @@ export default function Home() {
               </div>
             </div>
           </div>
+          <footer>
+            <button onClick={handleClearPosts}>Clear DataStore</button>
+          </footer>
         </main>
       ) : (
         <main className={styles.main}>

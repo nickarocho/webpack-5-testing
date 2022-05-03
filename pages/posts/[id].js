@@ -42,7 +42,7 @@ export default function PostComponent({ post }) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const { user, authenticated } = useUser();
-  const isPostOwner = user?.username === post.owner && authenticated;
+  const isPostOwner = user?.username === post?.owner && authenticated;
 
   async function handleDelete() {
     try {
