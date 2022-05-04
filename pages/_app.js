@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Amplify, { Auth, Hub, AuthModeStrategyType } from "aws-amplify";
 import { UserContext } from "../components/user";
+import QRCode from "qrcode.react";
 
 import "../styles/globals.css";
 import "@aws-amplify/ui-react/styles.css"; // default theme
@@ -22,6 +23,7 @@ export default function App({ Component, pageProps }) {
   const [authState, setAuthState] = useState("not signed in");
   const methods = ["sign-in", "sign-up"];
   const [authMethod, setAuthMethod] = useState("sign-in");
+  const [qrCode, setQrCode] = useState("");
 
   const getUser = async () => {
     try {
@@ -81,26 +83,84 @@ export default function App({ Component, pageProps }) {
     }
   };
 
-  const handleSignIn = async (data) => {
-    const [username, password] = [data.get("username"), data.get("password")];
-
-    if (!username || !password) {
-      throw new Error("Username or Password missing!");
-    }
-
+  async function handleSignIn(data) {
     try {
-      const user = await Auth.signIn(username, password);
-      if (!user) {
-        throw new Error("sign in error...");
+      const [username, password] = [data.get("username"), data.get("password")];
+
+      if (!username || !password) {
+        throw new Error("Username or Password missing!");
       }
 
+      const user = await Auth.signIn(username, password);
       setUser(user);
-      setAuthState("signed in!");
-      setAuthMethod("sign out");
+
+      if (
+        user.challengeName === "SMS_MFA" ||
+        user.challengeName === "SOFTWARE_TOKEN_MFA"
+      ) {
+        setAuthState("awaiting-verification");
+        setAuthMethod("confirm-sign-in");
+
+        // TODO
+      } else if (user.challengeName === "NEW_PASSWORD_REQUIRED") {
+        // const { requiredAttributes } = user.challengeParam; // the array of required attributes, e.g ['email', 'phone_number']
+        // // You need to get the new password and required attributes from the UI inputs
+        // // and then trigger the following function with a button click
+        // // For example, the email and phone_number are required attributes
+        // const { username, email, phone_number } = getInfoFromUserInput();
+        // const loggedUser = await Auth.completeNewPassword(
+        //   user, // the Cognito User Object
+        //   newPassword, // the new password
+        //   // OPTIONAL, the required attributes
+        //   {
+        //     email,
+        //     phone_number,
+        //   }
+        // );
+        // TODO
+      } else if (user.challengeName === "MFA_SETUP") {
+        // This happens when the MFA method is TOTP
+        // The user needs to setup the TOTP before using it
+        // More info please check the Enabling MFA part
+        // Auth.setupTOTP(user);
+      } else {
+        // The user directly signs in
+        if (!user) {
+          throw new Error("sign in error...");
+        }
+
+        setUser(user);
+        setAuthState("signed in!");
+        setAuthMethod("sign out");
+      }
     } catch (err) {
-      console.error("sign in error: ", err);
+      if (err.code === "UserNotConfirmedException") {
+        // In this case you need to resend the code and confirm the user
+        console.error(
+          "UserNotConfirmedException error: (This error happens if the user didn't finish the confirmation step when signing up) ",
+          err
+        );
+      } else if (err.code === "PasswordResetRequiredException") {
+        // In this case you need to call `forgotPassword` to reset the password
+        console.error(
+          "PasswordResetRequiredException error: (This error happens when the password is reset in the Cognito console) ",
+          err
+        );
+      } else if (err.code === "NotAuthorizedException") {
+        console.error(
+          "NotAuthorizedException error: (This error happens when the incorrect password is provided) ",
+          err
+        );
+      } else if (err.code === "UserNotFoundException") {
+        console.error(
+          "UserNotFoundException error: (This error happens when the supplied username/email does not exist in the Cognito user pool) ",
+          err
+        );
+      } else {
+        console.error("handleSignIn error: ", err);
+      }
     }
-  };
+  }
 
   const handleSignUp = async (data) => {
     const [username, password] = [data.get("username"), data.get("password")];
@@ -130,20 +190,39 @@ export default function App({ Component, pageProps }) {
   const handleConfirmSignUp = async (data) => {
     try {
       const code = data.get("code");
+
       if (!code) {
         throw new Error("no code provided!");
-      }
-      if (!user) {
+      } else if (!user) {
         throw new Error("no user to find user.username");
       }
+
       const result = await Auth.confirmSignUp(user.username, code);
-      console.log("confirm sign in result: ", { result });
+
       if (result === "SUCCESS") {
         setAuthState("not signed in");
         setAuthMethod("sign in");
       }
     } catch (err) {
-      console.error("confirm user error: ", err);
+      console.error("confirm sign up error: ", err);
+    }
+  };
+
+  const handleConfirmSignIn = async (data) => {
+    const code = data.get("code");
+
+    try {
+      const loggedUser = await Auth.confirmSignIn(
+        user,
+        code,
+        user.challengeName
+      );
+
+      setUser(loggedUser);
+      setAuthState("signed in!");
+      setAuthMethod("sign out");
+    } catch (err) {
+      console.error("confirm sign in error: ", err);
     }
   };
 
@@ -223,11 +302,62 @@ export default function App({ Component, pageProps }) {
       case "confirm-sign-up":
         handleConfirmSignUp(form);
         break;
+      case "confirm-sign-in":
+        handleConfirmSignIn(form);
+        break;
       case "sign-out":
         handleSignOut();
         break;
       default:
         console.log("default... do nothing");
+    }
+  };
+
+  const handleSetupTOTP = async (cognitoUser = user) => {
+    return new Promise(async (resolve, reject) => {
+      if (qrCode) {
+        setQrCode("");
+        reject("totp fail");
+      }
+      try {
+        if (!cognitoUser || !cognitoUser.username) {
+          throw new Error("Setup TOTP error: no `cognitoUser` present.");
+        }
+
+        const code = await Auth.setupTOTP(cognitoUser);
+
+        console.log({ code });
+
+        const generatedQrCodeValue = `otpauth://totp/AWSCognito:${cognitoUser.username}?secret=${code}&issuer=${cognitoUser.issuer}`;
+        setQrCode(generatedQrCodeValue);
+        resolve("totp success");
+      } catch (err) {
+        reject(`totp fail: ${err}`);
+        console.error("setup TOTP error: ", err);
+      }
+    });
+  };
+
+  const handleVerifyTOTP = async (e) => {
+    e.preventDefault();
+
+    const form = new FormData(e.target);
+    const challengeAnswer = form.get("TOTPcode");
+
+    try {
+      if (!user || !challengeAnswer) {
+        throw new Error(
+          "Verify TOTP error: no `user` or `challengeAnswer` present."
+        );
+      }
+
+      const verifyResult = await Auth.verifyTotpToken(user, challengeAnswer);
+      // TODO: wrap with logic to check if this isn't the preferred method already
+      const setPreferredResult = await Auth.setPreferredMFA(user, "TOTP");
+
+      console.log({ verifyResult, setPreferredResult });
+    } catch (err) {
+      console.error("verifyTOTP error: ", err);
     }
   };
 
@@ -345,6 +475,46 @@ export default function App({ Component, pageProps }) {
                   Remember This Device
                 </button>
                 <button onClick={handleForgetDevice}>Forget This Device</button>
+                <button onClick={handleSetupTOTP}>Setup TOTP</button>
+                {/* initial (first-time) setup TOTP flow */}
+                {qrCode && (
+                  <div className={styles.totpWrapper}>
+                    <div className={styles.qrWrapper}>
+                      <p>
+                        Scan this QR code with your device to obtain the
+                        one-time-passowrd, and input the code below.
+                      </p>
+                      <QRCode value={qrCode} />
+                    </div>
+                    <form
+                      className={styles.verifyTOTPactions}
+                      onSubmit={handleVerifyTOTP}
+                    >
+                      <input
+                        className={styles.verifyTOTPinput}
+                        type="text"
+                        name="TOTPcode"
+                        id="TOTPcode"
+                        placeholder="Code"
+                      />
+                      <div className={styles.verifyTOTPactions}>
+                        <input
+                          className={styles.verifyTOTPsubmit}
+                          type="submit"
+                          value="Continue →"
+                        />
+                        <button
+                          className={styles.verifyTOTPcancel}
+                          onClick={() => {
+                            setQrCode("");
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
                 <button onClick={promptUser}>Delete Your Account</button>
                 <button onClick={handleSignOut}>Sign Out</button>
               </details>
