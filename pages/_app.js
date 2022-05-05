@@ -24,6 +24,8 @@ export default function App({ Component, pageProps }) {
   const methods = ["sign-in", "sign-up"];
   const [authMethod, setAuthMethod] = useState("sign-in");
   const [qrCode, setQrCode] = useState("");
+  const [selectedPreferredMFA, setSelectedPreferredMFA] = useState("TOTP");
+  const [activeDrawers, setActiveDrawers] = useState([]);
 
   const getUser = async () => {
     try {
@@ -313,29 +315,21 @@ export default function App({ Component, pageProps }) {
     }
   };
 
-  const handleSetupTOTP = async (cognitoUser = user) => {
-    return new Promise(async (resolve, reject) => {
-      if (qrCode) {
-        setQrCode("");
-        reject("totp fail");
-      }
+  const handleSetupMFA = async (preferredMethod) => {
+    if (preferredMethod === "NOMFA") {
       try {
-        if (!cognitoUser || !cognitoUser.username) {
+        if (!user || !user.username) {
           throw new Error("Setup TOTP error: no `cognitoUser` present.");
         }
 
-        const code = await Auth.setupTOTP(cognitoUser);
+        const code = await Auth.setupTOTP(user);
+        const generatedQrCodeValue = `otpauth://totp/AWSCognito:${user.username}?secret=${code}&issuer=${user.issuer}`;
 
-        console.log({ code });
-
-        const generatedQrCodeValue = `otpauth://totp/AWSCognito:${cognitoUser.username}?secret=${code}&issuer=${cognitoUser.issuer}`;
         setQrCode(generatedQrCodeValue);
-        resolve("totp success");
       } catch (err) {
-        reject(`totp fail: ${err}`);
         console.error("setup TOTP error: ", err);
       }
-    });
+    }
   };
 
   const handleVerifyTOTP = async (e) => {
@@ -351,13 +345,37 @@ export default function App({ Component, pageProps }) {
         );
       }
 
-      const verifyResult = await Auth.verifyTotpToken(user, challengeAnswer);
-      // TODO: wrap with logic to check if this isn't the preferred method already
-      const setPreferredResult = await Auth.setPreferredMFA(user, "TOTP");
+      await Auth.verifyTotpToken(user, challengeAnswer);
+      handleSetPreferredMFA(selectedPreferredMFA);
 
-      console.log({ verifyResult, setPreferredResult });
+      // TODO: update the UI with a success message, prompt for changing (and TODO: build out) preferred method flow
+      setUser(user);
+      setQrCode("");
     } catch (err) {
       console.error("verifyTOTP error: ", err);
+    }
+  };
+
+  const handleSetPreferredMFA = async (e, preferredMethod = "TOTP") => {
+    e.preventDefault();
+
+    if (preferredMethod === "NO_MFA") {
+      preferredMethod = "NOMFA";
+    }
+
+    try {
+      await Auth.setPreferredMFA(user, preferredMethod);
+      getUser();
+    } catch (err) {
+      console.error("handleSetPreferredMFA error: ", err);
+    }
+  };
+
+  const handleToggleDrawer = (id) => {
+    if (activeDrawers.includes(id)) {
+      setActiveDrawers(activeDrawers.filter((tab) => tab !== id));
+    } else {
+      setActiveDrawers([...activeDrawers, id]);
     }
   };
 
@@ -383,83 +401,85 @@ export default function App({ Component, pageProps }) {
               <h3>Sign In / Sign Up</h3>
               <details className={styles.authDropdown}>
                 <summary className={styles.dropdownLabel}></summary>
-                <form className={styles.authForm} onSubmit={handleSubmitAuth}>
-                  {(authState === "not signed in" ||
-                    authState === "sign in" ||
-                    authState === "sign up") && (
-                    <>
-                      <fieldset
-                        className={styles.authTypes}
-                        onChange={(e) => setAuthMethod(e.target.value)}
-                      >
-                        {methods.map((method) => {
-                          const methodEncoded = method.replace(/\s+/g, "-");
-                          return (
-                            <div key={`${method}`}>
-                              <input
-                                type="radio"
-                                id={`${methodEncoded}-radio`}
-                                name="authType"
-                                value={methodEncoded}
-                                defaultChecked={methods[0] === methodEncoded}
-                              />
-                              <label
-                                className={styles.radioLabel}
-                                htmlFor={`${methodEncoded}-radio`}
-                              >
-                                {method.replace(/-/g, " ")}
-                              </label>
-                            </div>
-                          );
-                        })}
-                      </fieldset>
+                <div className={styles.buttonContainer}>
+                  <form className={styles.authForm} onSubmit={handleSubmitAuth}>
+                    {(authState === "not signed in" ||
+                      authState === "sign in" ||
+                      authState === "sign up") && (
+                      <>
+                        <fieldset
+                          className={styles.authTypes}
+                          onChange={(e) => setAuthMethod(e.target.value)}
+                        >
+                          {methods.map((method) => {
+                            const methodEncoded = method.replace(/\s+/g, "-");
+                            return (
+                              <div key={`${method}`}>
+                                <input
+                                  type="radio"
+                                  id={`${methodEncoded}-radio`}
+                                  name="authType"
+                                  value={methodEncoded}
+                                  defaultChecked={methods[0] === methodEncoded}
+                                />
+                                <label
+                                  className={styles.radioLabel}
+                                  htmlFor={`${methodEncoded}-radio`}
+                                >
+                                  {method.replace(/-/g, " ")}
+                                </label>
+                              </div>
+                            );
+                          })}
+                        </fieldset>
+                        <input
+                          type="text"
+                          id="username"
+                          name="username"
+                          placeholder="Username"
+                          className={styles.authInput}
+                        />
+                        <input
+                          type="password"
+                          id="password"
+                          name="password"
+                          placeholder="Password"
+                          className={styles.authInput}
+                        />
+                      </>
+                    )}
+                    {/* confirm user code input */}
+                    {authState === "awaiting-verification" && (
                       <input
                         type="text"
-                        id="username"
-                        name="username"
-                        placeholder="Username"
-                        className={styles.authInput}
+                        id="code"
+                        name="code"
+                        placeholder="Code"
+                        className={`${styles.authInput} ${styles.authInputCode}`}
                       />
-                      <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Password"
-                        className={styles.authInput}
-                      />
-                    </>
-                  )}
-                  {/* confirm user code input */}
-                  {authState === "awaiting-verification" && (
+                    )}
+                    {/* auth submit btn */}
                     <input
-                      type="text"
-                      id="code"
-                      name="code"
-                      placeholder="Code"
-                      className={`${styles.authInput} ${styles.authInputCode}`}
+                      type="submit"
+                      value={authMethod.replace(/-/g, " ")}
+                      className={styles.authAction}
                     />
-                  )}
-                  {/* auth submit btn */}
-                  <input
-                    type="submit"
-                    value={authMethod.replace(/-/g, " ")}
-                    className={styles.authAction}
-                  />
-                  <span className={styles.buttonDivider}>or</span>
-                  {/* social sign in btn */}
-                  <div>
-                    <button
-                      className={`${styles.authAction} ${styles.authActionGoogle}`}
-                      onClick={() =>
-                        Auth.federatedSignIn({
-                          provider: CognitoHostedUIIdentityProvider.Google,
-                        })
-                      }
-                    >
-                      Continue with Google →
-                    </button>
-                  </div>
-                </form>
+                    <span className={styles.buttonDivider}>or</span>
+                    {/* social sign in btn */}
+                    <div>
+                      <button
+                        className={`${styles.authAction} ${styles.authActionGoogle}`}
+                        onClick={() =>
+                          Auth.federatedSignIn({
+                            provider: CognitoHostedUIIdentityProvider.Google,
+                          })
+                        }
+                      >
+                        Continue with Google →
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </details>
             </div>
           </div>
@@ -470,53 +490,124 @@ export default function App({ Component, pageProps }) {
               <h3>Welcome, {user.username}!</h3>
               <details className={styles.userControls} open={false}>
                 <summary className={styles.dropdownLabel}></summary>
-                <button onClick={handleFetchDevices}>Fetch Devices</button>
-                <button onClick={handleRememberDevice}>
-                  Remember This Device
-                </button>
-                <button onClick={handleForgetDevice}>Forget This Device</button>
-                <button onClick={handleSetupTOTP}>Setup TOTP</button>
-                {/* initial (first-time) setup TOTP flow */}
-                {qrCode && (
-                  <div className={styles.totpWrapper}>
-                    <div className={styles.qrWrapper}>
-                      <p>
-                        Scan this QR code with your device to obtain the
-                        one-time-passowrd, and input the code below.
-                      </p>
-                      <QRCode value={qrCode} />
-                    </div>
-                    <form
-                      className={styles.verifyTOTPactions}
-                      onSubmit={handleVerifyTOTP}
-                    >
-                      <input
-                        className={styles.verifyTOTPinput}
-                        type="text"
-                        name="TOTPcode"
-                        id="TOTPcode"
-                        placeholder="Code"
-                      />
-                      <div className={styles.verifyTOTPactions}>
+                <div className={styles.buttonContainer}>
+                  <button id="fetchDevices" onClick={handleFetchDevices}>
+                    Fetch Devices
+                  </button>
+                  <button id="rememberDevices" onClick={handleRememberDevice}>
+                    Remember This Device
+                  </button>
+                  <button id="forgetDevice" onClick={handleForgetDevice}>
+                    Forget This Device
+                  </button>
+                  <button
+                    id="mfa"
+                    onClick={(e) => {
+                      handleToggleDrawer(e.target.id);
+                      handleSetupMFA(user.preferredMFA);
+                    }}
+                  >
+                    {user.preferredMFA === "NOMFA"
+                      ? "Setup MFA"
+                      : "Set Preferred MFA Method"}
+                  </button>
+                  {activeDrawers.includes("mfa") && (
+                    <div className={styles.optionsExpandedWrapper}>
+                      <form
+                        onSubmit={(e) => {
+                          handleSetPreferredMFA(e, selectedPreferredMFA);
+                        }}
+                      >
+                        <fieldset
+                          className={`${styles.authTypes} ${styles.preferredMFA}`}
+                          onChange={(e) =>
+                            setSelectedPreferredMFA(e.target.value)
+                          }
+                        >
+                          {[
+                            "TOTP",
+                            "SMS",
+                            "NOMFA",
+                            "SMS MFA",
+                            "SOFTWARE TOKEN MFA",
+                          ].map((method) => {
+                            const methodEncoded = method.replace(/\s+/g, "_");
+                            return (
+                              <div key={`${method}`}>
+                                <input
+                                  type="radio"
+                                  id={`${methodEncoded}-radio`}
+                                  name="authType"
+                                  value={methodEncoded}
+                                  defaultChecked={
+                                    user.preferredMFA === methodEncoded
+                                  }
+                                />
+                                <label
+                                  className={styles.radioLabel}
+                                  htmlFor={`${methodEncoded}-radio`}
+                                >
+                                  {method.replace(/-/g, " ")}
+                                </label>
+                              </div>
+                            );
+                          })}
+                        </fieldset>
                         <input
                           className={styles.verifyTOTPsubmit}
                           type="submit"
-                          value="Continue →"
+                          value="Save"
                         />
-                        <button
-                          className={styles.verifyTOTPcancel}
-                          onClick={() => {
-                            setQrCode("");
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-                <button onClick={promptUser}>Delete Your Account</button>
-                <button onClick={handleSignOut}>Sign Out</button>
+                      </form>
+
+                      {/* initial (first-time) setup MFA flow */}
+                      {user.preferredMFA === "NOMFA" && (
+                        <>
+                          <div className={styles.qrWrapper}>
+                            <p>
+                              Scan this QR code with your device to obtain the
+                              one-time-passowrd, and input the code below.
+                            </p>
+                            <QRCode value={qrCode} />
+                          </div>
+                          <form
+                            className={styles.verifyTOTPactions}
+                            onSubmit={handleVerifyTOTP}
+                          >
+                            <input
+                              className={styles.verifyTOTPinput}
+                              type="text"
+                              name="TOTPcode"
+                              id="TOTPcode"
+                              placeholder="Code"
+                            />
+                            <div className={styles.verifyTOTPactions}>
+                              <input
+                                className={styles.verifyTOTPsubmit}
+                                type="submit"
+                                value="Continue →"
+                              />
+                              <button
+                                className={styles.verifyTOTPcancel}
+                                onClick={() => {
+                                  setQrCode("");
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  <button id="deleteAccount" onClick={promptUser}>
+                    Delete Your Account
+                  </button>
+                  <button id="signOut" onClick={handleSignOut}>
+                    Sign Out
+                  </button>
+                </div>
               </details>
             </div>
           </div>
