@@ -135,6 +135,10 @@ fieldset.preferredMFA {
   flex-direction: column;
   align-items: flex-start;
 }
+.mfaPhoneNumber {
+  font-size: 0.8rem;
+  font-weight: 400;
+}
 
 /* username/pw inputs */
 .authInput {

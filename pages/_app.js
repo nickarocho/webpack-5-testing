@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import Amplify, { Auth, Hub, AuthModeStrategyType } from "aws-amplify";
 import { UserContext } from "../components/user";
 import QRCode from "qrcode.react";
+import PhoneInput from "react-phone-number-input";
 
 import "../styles/globals.css";
 import "@aws-amplify/ui-react/styles.css"; // default theme
+import "react-phone-number-input/style.css";
 import awsExports from "../src/aws-exports";
 
 import styles from "../styles/Home.module.css";
@@ -26,10 +28,13 @@ export default function App({ Component, pageProps }) {
   const [qrCode, setQrCode] = useState("");
   const [selectedPreferredMFA, setSelectedPreferredMFA] = useState("TOTP");
   const [activeDrawers, setActiveDrawers] = useState([]);
+  const [needsPhoneNumber, setNeedsPhoneNumber] = useState(false);
+  const [phoneValue, setPhoneValue] = useState(user?.attributes?.phone_number);
 
   const getUser = async () => {
     try {
       const user = await Auth.currentAuthenticatedUser();
+      console.log({ user });
       setUser(user);
     } catch (err) {
       setUser(null);
@@ -359,8 +364,43 @@ export default function App({ Component, pageProps }) {
   const handleSetPreferredMFA = async (e, preferredMethod = "TOTP") => {
     e.preventDefault();
 
+    const phoneNumber = phoneValue;
+
+    // massaging the value to make conditionals simpler
     if (preferredMethod === "NO_MFA") {
       preferredMethod = "NOMFA";
+    } else if (preferredMethod === "SMS_MFA") {
+      preferredMethod = "SMS";
+    }
+
+    if (preferredMethod === "SMS" && !user.attributes.phone_number) {
+      setNeedsPhoneNumber(true);
+    } else if (preferredMethod === "SMS" && phoneNumber) {
+      try {
+        const addPhoneNumberResult = await Auth.updateUserAttributes(user, {
+          phone_number: phoneNumber,
+        });
+        console.log({ addPhoneNumberResult });
+      } catch (err) {
+        console.error(
+          "something went wrong setting the phone_number attribute: ",
+          err
+        );
+      }
+    }
+
+    if (
+      preferredMethod === "SMS" &&
+      user.attributes.phone_number &&
+      !user.attributes.phone_number_verified
+    ) {
+      console.log("need to verify number...");
+      try {
+        const SMScheck = await Auth.verifyCurrentUserAttribute("phone_number");
+        console.log({ SMScheck });
+      } catch (err) {
+        console.error("verifyCurrentUserAttribute error: ", err);
+      }
     }
 
     try {
@@ -524,13 +564,7 @@ export default function App({ Component, pageProps }) {
                             setSelectedPreferredMFA(e.target.value)
                           }
                         >
-                          {[
-                            "TOTP",
-                            "SMS",
-                            "NOMFA",
-                            "SMS MFA",
-                            "SOFTWARE TOKEN MFA",
-                          ].map((method) => {
+                          {["TOTP", "SMS_MFA", "NOMFA"].map((method) => {
                             const methodEncoded = method.replace(/\s+/g, "_");
                             return (
                               <div key={`${method}`}>
@@ -547,12 +581,43 @@ export default function App({ Component, pageProps }) {
                                   className={styles.radioLabel}
                                   htmlFor={`${methodEncoded}-radio`}
                                 >
-                                  {method.replace(/-/g, " ")}
+                                  {method.replace(/-/g, " ")}{" "}
+                                  {method === "SMS_MFA" &&
+                                    user.attributes.phone_number && (
+                                      <span className={styles.mfaPhoneNumber}>
+                                        ({user.attributes.phone_number})
+                                        <span
+                                          onClick={() => {
+                                            setNeedsPhoneNumber(
+                                              !needsPhoneNumber
+                                            );
+                                            setPhoneValue(
+                                              user.attributes.phone_number
+                                            );
+                                          }}
+                                        >
+                                          ✏️
+                                        </span>
+                                      </span>
+                                    )}
                                 </label>
                               </div>
                             );
                           })}
                         </fieldset>
+                        {needsPhoneNumber && (
+                          <>
+                            <p>Please add your phone number to your account.</p>
+                            <PhoneInput
+                              placeholder="Enter phone number"
+                              name="phoneNumber"
+                              id="phoneNumber"
+                              defaultCountry="US"
+                              onChange={setPhoneValue}
+                              value={phoneValue}
+                            />
+                          </>
+                        )}
                         <input
                           className={styles.verifyTOTPsubmit}
                           type="submit"

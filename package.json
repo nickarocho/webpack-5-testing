@@ -14,7 +14,8 @@
     "next": "12.1.5",
     "qrcode.react": "^3.0.1",
     "react": "17",
-    "react-dom": "17"
+    "react-dom": "17",
+    "react-phone-number-input": "^3.1.52"
   },
   "devDependencies": {
     "eslint": "8.14.0",
