@@ -18,5 +18,11 @@ export type AmplifyDependentResourcesAttributes = {
             "AppClientIDWeb": "string",
             "AppClientID": "string"
         }
+    },
+    "storage": {
+        "webpack5testing": {
+            "BucketName": "string",
+            "Region": "string"
+        }
     }
 }

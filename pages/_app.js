@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Amplify, { Auth, Hub, AuthModeStrategyType } from "aws-amplify";
+import Amplify, { Auth, Storage, Hub, AuthModeStrategyType } from "aws-amplify";
 import { UserContext } from "../components/user";
 import QRCode from "qrcode.react";
 import PhoneInput from "react-phone-number-input";
@@ -583,7 +583,7 @@ export default function App({ Component, pageProps }) {
                                 >
                                   {method.replace(/-/g, " ")}{" "}
                                   {method === "SMS_MFA" &&
-                                    user.attributes.phone_number && (
+                                    user?.attributes?.phone_number && (
                                       <span className={styles.mfaPhoneNumber}>
                                         ({user.attributes.phone_number})
                                         <span

@@ -1,0 +1,14 @@
+{
+  "resourceName": "webpack5testing",
+  "policyUUID": "bd7eb10b",
+  "bucketName": "webpack5testinge69ec928e9054dbdab0db625e7323fd8",
+  "storageAccess": "auth",
+  "guestAccess": [],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}
