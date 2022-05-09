@@ -76,6 +76,24 @@ export default function Home() {
     }
   };
 
+  const handleCopy = async (fileKey) => {
+    try {
+      const result = await Storage.copy(
+        { key: fileKey },
+        { key: `copied/${fileKey}` }
+      );
+      console.log("copy result: ", result);
+    } catch (err) {}
+  };
+
+  const handleRemove = async (fileKey) => {
+    try {
+      const result = await Storage.remove(fileKey);
+      console.log("remove result: ", result);
+      fetchFiles();
+    } catch (err) {}
+  };
+
   function convertBytesToSize(bytes) {
     var sizes = ["Bytes", "KB", "MB", "GB", "TB"];
     if (bytes == 0) return "n/a";
@@ -114,6 +132,12 @@ export default function Home() {
                     <button onClick={() => handleDownload(file.key)}>
                       Download ⬇
                     </button>
+                    <button onClick={() => handleCopy(file.key)}>
+                      Copy 👯‍♀️
+                    </button>
+                    <button onClick={() => handleRemove(file.key)}>
+                      Remove 🗑
+                    </button>
                   </div>
                 </div>
               </div>
@@ -133,7 +157,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <footer>footer...</footer>
         </main>
       ) : (
         <main className={styles.main}>
