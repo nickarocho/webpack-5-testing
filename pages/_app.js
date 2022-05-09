@@ -679,6 +679,14 @@ export default function App({ Component, pageProps }) {
         )}
       </header>
       <Component {...pageProps} />
+      <footer className={styles.footer}>
+        <Link href="/">
+          <a>Posts</a>
+        </Link>
+        <Link href="/files">
+          <a>Files</a>
+        </Link>
+      </footer>
     </UserContext.Provider>
   );
 }
