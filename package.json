@@ -11,6 +11,7 @@
   "dependencies": {
     "@aws-amplify/ui-react": "^2.15.5",
     "aws-amplify": "^4.3.21-beta.8",
+    "moment": "^2.29.3",
     "next": "12.1.5",
     "qrcode.react": "^3.0.1",
     "react": "17",

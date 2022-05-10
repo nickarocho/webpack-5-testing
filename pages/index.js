@@ -12,6 +12,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useUser } from "../components/user";
 
+// 3rd party libs
+import moment from "moment";
+
 export default function Home() {
   const { authenticated } = useUser();
   const router = useRouter();
@@ -96,6 +99,7 @@ export default function Home() {
                     <input
                       defaultValue={`Today, ${new Date().toLocaleTimeString()}`}
                       name="title"
+                      type="text"
                     />
                   </fieldset>
 
@@ -106,7 +110,6 @@ export default function Home() {
                       name="content"
                     />
                   </fieldset>
-                  <hr />
                   <button className={`${styles.uiButton} ${styles.primary}`}>
                     Create Post
                   </button>
@@ -115,6 +118,9 @@ export default function Home() {
             </div>
             {posts
               .map((post) => {
+                const { createdAt, updatedAt } = post;
+
+                console.log(moment(createdAt).calendar());
                 return (
                   <div
                     className={styles.column}
@@ -125,7 +131,23 @@ export default function Home() {
                         <a>
                           <h3>{post.title}</h3>
                           <p>{post.content}</p>
-                          <p className={styles.postOwner}>by: {post.owner}</p>
+                          <div className={styles.cardMetaWrapper}>
+                            <code className={styles.cardMeta}>
+                              <strong>posted by: </strong>
+                              {post.owner}
+                            </code>
+                            <code className={styles.cardMeta}>
+                              <strong>created: </strong>
+                              {moment(createdAt).fromNow()}
+                            </code>
+                            {/* only show `updatedAt` if the post has been edited */}
+                            {!moment(updatedAt).isSame(createdAt) && (
+                              <code className={styles.cardMeta}>
+                                <strong>last updated: </strong>
+                                {moment(updatedAt).fromNow()}
+                              </code>
+                            )}
+                          </div>
                         </a>
                       </Link>
                     </div>
@@ -134,9 +156,6 @@ export default function Home() {
               })
               .reverse()}
           </div>
-          <footer>
-            <button onClick={handleClearPosts}>Clear DataStore</button>
-          </footer>
         </main>
       ) : (
         <main className={styles.main}>

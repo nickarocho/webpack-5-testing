@@ -2893,7 +2893,7 @@ change-case@^4.1.2:
     snake-case "^3.0.4"
     tslib "^2.0.3"
 
-classnames@2.3.1:
+classnames@2.3.1, classnames@^2.2.5:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.3.1.tgz#dfcfa3891e306ec1dad105d0e88f4417b8535e8e"
   integrity sha512-OlQdbZ7gLfGarSqxesMesDa5uz7KFbID8Kpq/SxIoNGDqY8lSYs0D+hhtBXhcdB3rcbXArFr7vlHheLk1voeNA==
@@ -2947,6 +2947,11 @@ core-js-pure@^3.20.2:
   version "3.22.3"
   resolved "https://registry.yarnpkg.com/core-js-pure/-/core-js-pure-3.22.3.tgz#181d1b6321fb29fe99c16a1f28beb840ab84ad36"
   integrity sha512-oN88zz7nmKROMy8GOjs+LN+0LedIvbMdnB5XsTlhcOg1WGARt9l0LFg0zohdoFmCsEZ1h2ZbSQ6azj3M+vhzwQ==
+
+country-flag-icons@^1.0.2:
+  version "1.4.26"
+  resolved "https://registry.yarnpkg.com/country-flag-icons/-/country-flag-icons-1.4.26.tgz#e324b2e79c00f180d4f44a8ce034a3e824097619"
+  integrity sha512-fUBQ58zfQsSL12ErkFSfBxnQZapzdC8+5ZKqhD1z0EHqPnOuiFl7nZTv8Gqpms+jvweP+pbCYGp7G4aiO9eiMw==
 
 cross-spawn@^7.0.2:
   version "7.0.3"
@@ -3683,6 +3688,13 @@ inherits@2:
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
 
+input-format@^0.3.7:
+  version "0.3.7"
+  resolved "https://registry.yarnpkg.com/input-format/-/input-format-0.3.7.tgz#08d63fc629985d604d1910e1d1a220b7a521bdc3"
+  integrity sha512-hgwiCjV7MnhFvX4Hwrvk7hB2a2rcB2CQb7Ex7GlK1ISbEXuLtflwBUnadFSA1rVNDPFh9yWBaJJ4/o1XkzhPIg==
+  dependencies:
+    prop-types "^15.7.2"
+
 internal-slot@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/internal-slot/-/internal-slot-1.0.3.tgz#7347e307deeea2faac2ac6205d4bc7d34967f59c"
@@ -3907,6 +3919,11 @@ levn@^0.4.1:
     prelude-ls "^1.2.1"
     type-check "~0.4.0"
 
+libphonenumber-js@^1.9.52:
+  version "1.9.53"
+  resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.9.53.tgz#f4f3321f8fb0ee62952c2a8df4711236d2626088"
+  integrity sha512-3cuMrA2CY3TbKVC0wKye5dXYgxmVVi4g13gzotprQSguFHMqf0pIrMM2Z6ZtMsSWqvtIqi5TuQhGjMhxz0O9Mw==
+
 locate-path@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/locate-path/-/locate-path-2.0.0.tgz#2b568b265eec944c6d9c0de9c3dbbbca0354cd8e"
@@ -4028,6 +4045,11 @@ minimist@^1.2.0, minimist@^1.2.5, minimist@^1.2.6:
   version "1.2.6"
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.6.tgz#8637a5b759ea0d6e98702cfb3a9283323c93af44"
   integrity sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==
+
+moment@^2.29.3:
+  version "2.29.3"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.3.tgz#edd47411c322413999f7a5940d526de183c031f3"
+  integrity sha512-c6YRvhEo//6T2Jz/vVtYzqBzwvPT95JBQ+smCytzf7c50oMZRsR/a4w88aD34I+/QVSfnoAnSBFPJHItlOMJVw==
 
 ms@2.0.0:
   version "2.0.0"
@@ -4322,7 +4344,7 @@ prelude-ls@^1.2.1:
   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.2.1.tgz#debc6489d7a6e6b0e7611888cec880337d316396"
   integrity sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==
 
-prop-types@^15.8.1:
+prop-types@^15.7.2, prop-types@^15.8.1:
   version "15.8.1"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.8.1.tgz#67d87bf1a694f48435cf332c24af10214a3140b5"
   integrity sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==
@@ -4345,6 +4367,11 @@ punycode@^2.1.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
+
+qrcode.react@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/qrcode.react/-/qrcode.react-3.0.1.tgz#0cb1d7cfdf3955737fbd3509c193985795ca0612"
+  integrity sha512-uCNm16ClMCrdM2R20c/zqmdwHcbMQf3K7ey39EiK/UgEKbqWeM0iH2QxW3iDVFzjQKFzH23ICgOyG4gNsJ0/gw==
 
 qrcode@1.5.0, qrcode@^1.4.4:
   version "1.5.0"
@@ -4408,6 +4435,17 @@ react-native-get-random-values@^1.4.0:
   integrity sha512-H/zghhun0T+UIJLmig3+ZuBCvF66rdbiWUfRSNS6kv5oDSpa1ZiVyvRWtuPesQpT8dXj+Bv7WJRQOUP+5TB1sA==
   dependencies:
     fast-base64-decode "^1.0.0"
+
+react-phone-number-input@^3.1.52:
+  version "3.1.52"
+  resolved "https://registry.yarnpkg.com/react-phone-number-input/-/react-phone-number-input-3.1.52.tgz#5f884d8c4c97414c9be49039b04237c28e6892ff"
+  integrity sha512-EEMRwm6ORQ1Hdu8UjAG5E2R3Nn9aetPDCccmQawPNbDL2KoLmLTPs/5n4C7McT12HT4hGimfVyiGtZGRMoGjDQ==
+  dependencies:
+    classnames "^2.2.5"
+    country-flag-icons "^1.0.2"
+    input-format "^0.3.7"
+    libphonenumber-js "^1.9.52"
+    prop-types "^15.7.2"
 
 react-remove-scroll-bar@^2.3.1:
   version "2.3.1"

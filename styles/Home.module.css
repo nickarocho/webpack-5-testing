@@ -399,23 +399,23 @@ button.isActive {
   padding: 0 0.5rem;
   font-weight: 600;
 }
-.card input,
+.card input[type="text"],
 .card textarea {
   border: none;
   width: 100%;
   height: 100%;
-  top: 0;
-  left: 0;
-  padding: 1rem;
+  padding: 0.5rem 1rem;
   border-radius: 8px;
 }
 .card hr {
   margin: 1rem 0;
 }
-
-.postOwner {
+.card button {
+  margin-top: 1rem;
+}
+.cardMeta {
   font-size: 0.7rem;
-  font-weight: 600;
+  display: block;
 }
 
 /* UI components */

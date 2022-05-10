@@ -210,7 +210,10 @@ export default function Home() {
               >
                 <div className={styles.card}>
                   <h3>{file.key}</h3>
-                  <code>{convertBytesToSize(file.size)}</code>
+                  <code>
+                    <strong>size: </strong>
+                    {convertBytesToSize(file.size)}
+                  </code>
                   <br />
                   <div>
                     <button
