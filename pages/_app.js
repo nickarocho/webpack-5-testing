@@ -434,9 +434,17 @@ export default function App({ Component, pageProps }) {
           <a className={styles.siteTitle}>Amplify x Next Super App</a>
         </Link>
 
-        {!user?.signInUserSession ? (
-          // not signed in
-          <div>
+        <div className={styles.userNavWrapper}>
+          <nav>
+            <Link href="/">
+              <a className={styles.navItem}>Posts</a>
+            </Link>
+            <Link href="/files">
+              <a className={styles.navItem}>Files</a>
+            </Link>
+          </nav>
+          {!user?.signInUserSession ? (
+            // not signed in
             <div className={styles.authContainer}>
               <h3>Sign In / Sign Up</h3>
               <details className={styles.authDropdown}>
@@ -522,10 +530,8 @@ export default function App({ Component, pageProps }) {
                 </div>
               </details>
             </div>
-          </div>
-        ) : (
-          // signed in - show account controls
-          <div>
+          ) : (
+            // signed in - show account controls
             <div className={styles.userContainer}>
               <h3>Welcome, {user.username}!</h3>
               <details className={styles.userControls} open={false}>
@@ -675,17 +681,23 @@ export default function App({ Component, pageProps }) {
                 </div>
               </details>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </header>
       <Component {...pageProps} />
       <footer className={styles.footer}>
-        <Link href="/">
-          <a>Posts</a>
-        </Link>
-        <Link href="/files">
-          <a>Files</a>
-        </Link>
+        <p>
+          Built with ❤️... and{" "}
+          <a
+            className={styles.footerLink}
+            href="https://docs.amplify.aws/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            AWS Amplify
+          </a>
+          .
+        </p>
       </footer>
     </UserContext.Provider>
   );

@@ -1,15 +1,19 @@
 .container {
   padding: 0 2rem;
-  max-width: 1000px;
-  margin: 0 auto;
+  width: 100vw;
+  background: white;
 }
 
 .main {
   min-height: 100vh;
+  max-width: 1000px;
+  margin: 0 auto;
   padding-top: 5rem;
+  margin-bottom: 200px;
   flex: 1;
   display: flex;
   flex-direction: column;
+  background: white;
 }
 
 .defaultBody {
@@ -24,7 +28,7 @@
 
 .footer {
   display: flex;
-  padding: 2rem 0;
+  min-height: 200px;
   justify-content: center;
   align-items: center;
   background: black;
@@ -32,15 +36,7 @@
   position: fixed;
   bottom: 0;
   width: 100vw;
-}
-
-.footer a {
-  display: flex;
-  /* justify-content: center; */
-  /* align-items: center; */
-  /* flex-grow: 1; */
-  margin: 0 1rem;
-  font-weight: 600;
+  z-index: -1000;
 }
 
 .title a {
@@ -114,6 +110,15 @@
   padding: 0.6rem 0;
   box-shadow: 0 6.7px 5.3px rgba(0, 0, 0, 0.048),
     0 12.5px 10px rgba(0, 0, 0, 0.06), 0 22.3px 17.9px rgba(0, 0, 0, 0.072);
+}
+.userNavWrapper {
+  display: flex;
+  align-items: center;
+}
+.userNavWrapper nav > * {
+  padding: 0 1rem;
+  text-decoration: none;
+  font-weight: 600;
 }
 
 .siteTitle {
@@ -236,7 +241,7 @@ button.isActive {
 }
 .dropdownLabel {
   position: absolute;
-  top: -3rem;
+  top: -2rem;
   right: 0;
   width: 100%;
   text-align: right;
@@ -261,7 +266,7 @@ button.isActive {
 }
 .userControls button:hover {
   cursor: pointer;
-  filter: contrast(85%);
+  filter: contrast(75%);
 }
 .optionsExpandedWrapper {
   max-height: 100%;
@@ -378,10 +383,80 @@ button.isActive {
   padding: 1em;
   font-size: 1em;
 }
+.newFileCard {
+  max-width: fit-content;
+}
 
 .postOwner {
   font-size: 0.7rem;
   font-weight: 600;
+}
+
+/* UI components */
+button.uiButton {
+  width: 100%;
+  transition: all 0.2s;
+  background: #1b1b1b;
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 0;
+  border: 0;
+  font-size: 0.8rem;
+}
+button.uiButton:first-of-type {
+  border-radius: 8px 8px 0 0;
+}
+button.uiButton:last-of-type {
+  border-radius: 0 0 8px 8px;
+}
+button.uiButton:hover {
+  cursor: pointer;
+  filter: contrast(75%);
+}
+button.uiButton.primary {
+  width: 100%;
+  background: linear-gradient(to right, #e61e4d 0%, #e31c5f 50%, #d70466 100%);
+  border-radius: 8px;
+  border: 0;
+  color: white;
+  font-size: 1rem;
+}
+button.uiButton.primary:hover {
+  cursor: pointer;
+  transform: translateY(-2px);
+}
+button.uiButton:active {
+  cursor: pointer;
+  transform: translateY(0);
+}
+.formWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.formWrapper > * {
+  padding: 0.5rem 0;
+}
+.formWrapper label {
+  font-weight: 500;
+  padding-right: 1rem;
+}
+input.uploadFileInput {
+  max-width: 100%;
+}
+input.uploadFileDefaultInput {
+  display: none !important;
+}
+input.fileNameInput,
+label.uploadFileInput {
+  width: 100%;
+  display: block;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 #d4d4d5, 0 0 0 1px #d4d4d5;
+  border: none;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
 }
 
 /* utils */
