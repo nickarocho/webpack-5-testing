@@ -87,22 +87,6 @@ export default function Home() {
           </div>
 
           <div className={styles.row}>
-            {posts.map((post) => (
-              <div
-                className={styles.column}
-                key={Math.ceil(Math.random() * Date.now())}
-              >
-                <div className={styles.card}>
-                  <Link href={`/posts/${post.id}`}>
-                    <a>
-                      <h3>{post.title}</h3>
-                      <p>{post.content}</p>
-                      <p className={styles.postOwner}>by: {post.owner}</p>
-                    </a>
-                  </Link>
-                </div>
-              </div>
-            ))}
             <div className={styles.column}>
               <div className={styles.card}>
                 <h3>✏️ New Post</h3>
@@ -122,11 +106,33 @@ export default function Home() {
                       name="content"
                     />
                   </fieldset>
-
-                  <button>Create Post</button>
+                  <hr />
+                  <button className={`${styles.uiButton} ${styles.primary}`}>
+                    Create Post
+                  </button>
                 </form>
               </div>
             </div>
+            {posts
+              .map((post) => {
+                return (
+                  <div
+                    className={styles.column}
+                    key={Math.ceil(Math.random() * Date.now())}
+                  >
+                    <div className={styles.card}>
+                      <Link href={`/posts/${post.id}`}>
+                        <a>
+                          <h3>{post.title}</h3>
+                          <p>{post.content}</p>
+                          <p className={styles.postOwner}>by: {post.owner}</p>
+                        </a>
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })
+              .reverse()}
           </div>
           <footer>
             <button onClick={handleClearPosts}>Clear DataStore</button>

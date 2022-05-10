@@ -20,9 +20,13 @@ export default function Home() {
   const [privateFiles, setPrivateFiles] = useState([]);
 
   useEffect(() => {
+    fetchFiles();
+  }, []);
+
+  const fetchFiles = () => {
     fetchPublicFiles();
     fetchPrivateFiles();
-  }, []);
+  };
 
   async function fetchPublicFiles() {
     try {
@@ -61,8 +65,7 @@ export default function Home() {
       });
 
       // refresh the list of public files
-      fetchPublicFiles();
-      fetchPrivateFiles();
+      fetchFiles();
 
       // clear the 'New file' input to prep another upload
       e.target.file.value = "";
@@ -103,6 +106,7 @@ export default function Home() {
         { key: `copied/${fileKey}` }
       );
       console.log("copy result: ", result);
+      fetchFiles();
     } catch (err) {}
   };
 
@@ -110,7 +114,7 @@ export default function Home() {
     try {
       const result = await Storage.remove(fileKey);
       console.log("remove result: ", result);
-      fetchPublicFiles();
+      fetchFiles();
     } catch (err) {}
   };
 
