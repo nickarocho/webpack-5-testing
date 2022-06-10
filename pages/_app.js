@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import Amplify, { Auth, Storage, Hub, AuthModeStrategyType } from "aws-amplify";
+import Amplify, { Storage, Hub, AuthModeStrategyType } from "aws-amplify";
+import { Auth } from "@aws-amplify/auth";
 import { UserContext } from "../components/user";
 import QRCode from "qrcode.react";
 import PhoneInput from "react-phone-number-input";
