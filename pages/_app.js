@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Amplify, { Storage, Hub, AuthModeStrategyType } from "aws-amplify";
-import { Auth } from "@aws-amplify/auth";
+import { Auth, CognitoHostedUIIdentityProvider } from "@aws-amplify/auth";
 import { UserContext } from "../components/user";
 import QRCode from "qrcode.react";
 import PhoneInput from "react-phone-number-input";
@@ -352,7 +352,7 @@ export default function App({ Component, pageProps }) {
       }
 
       await Auth.verifyTotpToken(user, challengeAnswer);
-      handleSetPreferredMFA(selectedPreferredMFA);
+      handleSetPreferredMFA(e, selectedPreferredMFA);
 
       // TODO: update the UI with a success message, prompt for changing (and TODO: build out) preferred method flow
       setUser(user);
@@ -644,7 +644,7 @@ export default function App({ Component, pageProps }) {
                           </div>
                           <form
                             className={styles.verifyTOTPactions}
-                            onSubmit={handleVerifyTOTP}
+                            onSubmit={(e) => handleVerifyTOTP(e)}
                           >
                             <input
                               className={styles.verifyTOTPinput}
